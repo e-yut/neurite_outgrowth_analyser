@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neurite Outgrowth Analyser (web edition)</title>
+  <meta name="description" content="Measure neurite outgrowth in scratch-assay microscopy images, entirely in your browser. No install, no upload.">
+  <link rel="stylesheet" href="static/css/app.css">
+</head>
+<body>
+  <header class="top">
+    <h1>Neurite Outgrowth Analyser <span class="sub">web edition of v6.7.1</span></h1>
+    <p class="privacy">Runs entirely in your browser. Images never leave this device.</p>
+    <a class="repo" href="https://github.com/e-yut/neurite_outgrowth_analyser">Source &amp; desktop version</a>
+  </header>
+
+  <main>
+    <aside class="panel" aria-label="Inputs and settings">
+      <section>
+        <h2>1. Images</h2>
+        <button type="button" id="btnDemo" class="secondary wide">Load demo images</button>
+
+        <h3>Reference image (0 h)</h3>
+        <div class="drop" id="dropRef" role="button" tabindex="0" aria-label="Choose or drop the reference image">
+          <span class="hint">Drop a file here or click to choose</span>
+          <span class="file"><span id="refName">None loaded</span>
+            <button type="button" id="clearRef" class="icon" title="Remove reference" aria-label="Remove reference" hidden>×</button></span>
+        </div>
+        <input type="file" id="fileRef" accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" hidden>
+
+        <h3>Images to analyse</h3>
+        <div class="drop" id="dropImgs" role="button" tabindex="0" aria-label="Choose or drop images to analyse">
+          <span class="hint">Drop files here or click to choose (TIFF, PNG, JPG)</span>
+        </div>
+        <input type="file" id="fileImgs" accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" multiple hidden>
+        <ul id="imgList" class="files"></ul>
+        <button type="button" id="clearImgs" class="link small" hidden>Remove all images</button>
+      </section>
+
+      <section>
+        <h2>2. Detection</h2>
+        <div id="sliders"></div>
+        <div class="param">
+          <label for="ppm">Pixels per micron</label>
+          <input type="number" id="ppm" min="0.0001" step="any">
+        </div>
+      </section>
+
+      <section>
+        <h2>3. Overlay</h2>
+        <div class="row">
+          <label for="mode">Mode</label>
+          <select id="mode">
+            <option>Color</option>
+            <option>Grayscale</option>
+            <option>B/W</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="color">Neurite colour</label>
+          <input type="color" id="color">
+        </div>
+        <div class="row">
+          <label for="thickness">Thickness <span id="thicknessVal"></span></label>
+          <input type="range" id="thickness" min="1" max="10" step="1">
+        </div>
+      </section>
+
+      <section>
+        <h2>4. Scale bar</h2>
+        <div class="row">
+          <label for="sbOn">Add to overlays</label>
+          <input type="checkbox" id="sbOn">
+        </div>
+        <div class="row">
+          <label for="sbLength">Length (µm)</label>
+          <input type="number" id="sbLength" min="1" step="any">
+        </div>
+        <div class="row">
+          <label for="sbPosition">Position</label>
+          <select id="sbPosition">
+            <option>Bottom Right</option>
+            <option>Bottom Left</option>
+            <option>Top Right</option>
+            <option>Top Left</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="sbLabel">Label</label>
+          <input type="text" id="sbLabel">
+        </div>
+        <div class="row">
+          <label for="sbColor">Colour</label>
+          <input type="color" id="sbColor">
+        </div>
+      </section>
+
+      <section class="actions">
+        <button type="button" id="btnRun" class="primary wide">Run analysis</button>
+        <button type="button" id="btnExport" class="secondary wide">Export results (ZIP)</button>
+        <button type="button" id="btnDefaults" class="link small">Reset settings to defaults</button>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+    </aside>
+
+    <div class="work">
+      <section class="viewer" aria-label="Image viewer">
+        <div class="toolbar">
+          <label class="vh" for="itemSel">Image shown</label>
+          <select id="itemSel"></select>
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab" role="tab" data-tab="roi">ROI</button>
+            <button type="button" class="tab" role="tab" data-tab="preview">Threshold preview</button>
+            <button type="button" class="tab" role="tab" data-tab="overlay">Overlay</button>
+          </div>
+          <div class="zoom">
+            <button type="button" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
+            <button type="button" id="zoomFit" title="Fit image to view">Fit</button>
+            <button type="button" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+          </div>
+        </div>
+        <div class="toolbar roi-tools">
+          <button type="button" id="btnAuto" title="Detect the scratch gap in the reference image again">Auto-detect gap</button>
+          <button type="button" id="btnResetRoi" title="Discard this image's own ROI and use the reference ROI">Use reference ROI</button>
+          <button type="button" id="btnApplyAll" title="Copy the reference ROI to every image, replacing individual adjustments">Apply reference ROI to all</button>
+          <pre id="readout" class="readout" aria-live="off"></pre>
+        </div>
+        <div class="stage"><canvas id="view"></canvas></div>
+        <p id="viewInfo" class="info"></p>
+      </section>
+
+      <section class="results" aria-label="Results">
+        <div class="tablewrap">
+          <table>
+            <thead><tr id="resultsHead"></tr></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+          <p id="resultsEmpty" class="empty">No results yet. Load images, check the ROI, then run the analysis.</p>
+        </div>
+        <p id="staleNote" class="stale-note" hidden>Greyed rows are out of date: the ROI or settings changed after they were computed. Run the analysis again.</p>
+      </section>
+    </div>
+  </main>
+
+  <script src="static/vendor/fflate/fflate.min.js"></script>
+  <script src="static/vendor/sheetjs/xlsx.mini.min.js"></script>
+  <script src="static/js/pipeline.js"></script>
+  <script type="module" src="static/js/app.js"></script>
+</body>
+</html>

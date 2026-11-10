@@ -1,6 +1,44 @@
 Neurite Outgrowth Analysis v6.7.1
 =================================
 
+Web edition
+-----------
+Live: https://e-yut.github.io/neurite_outgrowth_analyser/
+
+A browser-only edition of the analyser lives on the "e-yut-web" branch
+(index.html plus the static/ folder). It needs no Python, no installation and
+no server: images are decoded and analysed inside the browser and never leave
+your machine. It reproduces the v6.7.1 pipeline step for step with OpenCV.js
+(WebAssembly) running in a Web Worker.
+
+How to use it: load the 0 h reference image (the scratch gap is detected
+automatically and becomes the ROI), load the images to analyse, adjust the ROI
+by dragging its corners or the whole shape (mouse wheel zooms), set the
+parameters, press "Run analysis", then "Export ZIP" to download the CSV, XLSX
+and overlay PNGs. "Load demo images" loads the two demo TIFFs from this
+repository.
+
+Additions over the desktop app: a live threshold preview that uses the real
+analysis pipeline, a per-image ROI with side-length and area readout,
+parameters remembered in the browser, and a single ZIP download in place of
+the output-folder picker.
+
+Parity: with the same ROI and parameters the web edition gives the same
+numbers as the v6.7.1 pipeline. This was checked on both demo images against
+OpenCV 5.0.0 in Python 3.13 for four parameter/ROI combinations; every column
+matched to the last digit. The known quirks of v6.7.1 are kept on purpose
+(for example, neurite length is the contour point count of the skeleton,
+which roughly doubles the length of a one-pixel-wide line).
+
+Differences from the desktop app: overlays are always saved as PNG; the
+scale-bar label uses a browser font; JPEG and 16-bit images may decode
+slightly differently in a browser than in OpenCV; for multi-page TIFFs the
+largest page is used.
+
+Third-party libraries (vendored in static/vendor, each with its licence):
+OpenCV.js 4.9.0 (Apache-2.0), UTIF.js 3.1.0 (MIT), pako 1.0.11 (MIT),
+SheetJS CE 0.20.3 (Apache-2.0), fflate 0.8.2 (MIT).
+
 Creator
 -------
 Eylan Yutuc
