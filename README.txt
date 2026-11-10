@@ -14,7 +14,7 @@ your machine. It reproduces the v6.7.1 pipeline step for step with OpenCV.js
 How to use it: load the 0 h reference image (the scratch gap is detected
 automatically and becomes the ROI), load the images to analyse, adjust the ROI
 by dragging its corners or the whole shape (mouse wheel zooms), set the
-parameters, press "Run analysis", then "Export ZIP" to download the CSV, XLSX
+parameters, press "Run analysis", then "Export results (ZIP)" to download the CSV, XLSX
 and overlay PNGs. "Load demo images" loads the two demo TIFFs from this
 repository.
 
