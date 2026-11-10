@@ -25,11 +25,16 @@ const DEFAULTS = {
 };
 
 const SLIDERS = [
-  { key: 'topHat', label: 'Top-hat size', min: 3, max: 51, step: 2, hint: 'Structuring element for top-hat (odd).' },
-  { key: 'otsuOffset', label: 'Otsu offset', min: -50, max: 50, step: 1, hint: 'Adjust Otsu threshold.' },
-  { key: 'manualThresh', label: 'Manual thresh (0 = auto)', min: 0, max: 255, step: 1, hint: '0 uses Otsu + offset.' },
-  { key: 'minArea', label: 'Min area (px)', min: 0, max: 5000, step: 10, hint: 'Discard small components.' },
-  { key: 'minLength', label: 'Min length (px)', min: 0, max: 200, step: 1, hint: 'Discard short skeletons.' },
+  { key: 'topHat', label: 'Top-hat size', min: 3, max: 51, step: 2, hint: 'Structuring element for top-hat (odd).',
+    tip: 'Size of the square structuring element for the top-hat filter that enhances thin, bright structures (odd, 3\u201351, default 15)' },
+  { key: 'otsuOffset', label: 'Otsu offset', min: -50, max: 50, step: 1, hint: 'Adjust Otsu threshold.',
+    tip: 'Shifts the automatic Otsu threshold up or down (\u221250\u202650, default 0). Only used when the manual threshold is 0' },
+  { key: 'manualThresh', label: 'Manual thresh (0 = auto)', min: 0, max: 255, step: 1, hint: '0 uses Otsu + offset.',
+    tip: 'Fixed binary threshold (1\u2013255). Set to 0 to use the automatic Otsu threshold plus the offset instead (default 100)' },
+  { key: 'minArea', label: 'Min area (px)', min: 0, max: 5000, step: 10, hint: 'Discard small components.',
+    tip: 'Connected components smaller than this many pixels are discarded as noise (default 150)' },
+  { key: 'minLength', label: 'Min length (px)', min: 0, max: 200, step: 1, hint: 'Discard short skeletons.',
+    tip: 'Skeleton traces shorter than this many pixels are discarded (default 50)' },
 ];
 const DETECTION_KEYS = ['topHat', 'otsuOffset', 'manualThresh', 'minArea', 'minLength'];
 
@@ -127,10 +132,11 @@ function buildParamControls() {
   for (const s of SLIDERS) {
     const row = document.createElement('div');
     row.className = 'param';
+    row.title = s.tip;
     row.innerHTML =
       `<label for="r-${s.key}">${s.label}</label>` +
-      `<div class="pair"><input type="range" id="r-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}">` +
-      `<input type="number" id="n-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" aria-label="${s.label}"></div>` +
+      `<div class="pair"><input type="range" id="r-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" title="${s.tip}">` +
+      `<input type="number" id="n-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}" aria-label="${s.label}" title="${s.tip}"></div>` +
       `<small>${s.hint}</small>`;
     host.appendChild(row);
     const range = $('r-' + s.key);

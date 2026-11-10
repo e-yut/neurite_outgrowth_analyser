@@ -1,8 +1,8 @@
 Neurite Outgrowth Analysis v6.7.1
 =================================
 
-Web edition
------------
+Web edition (v6.7.2)
+--------------------
 Live: https://e-yut.github.io/neurite_outgrowth_analyser/
 
 A browser-only edition of the analyser lives on the "e-yut-web" branch
@@ -22,6 +22,12 @@ Additions over the desktop app: a live threshold preview that uses the real
 analysis pipeline, a per-image ROI with side-length and area readout,
 parameters remembered in the browser, and a single ZIP download in place of
 the output-folder picker.
+
+New in web edition v6.7.2: a Help page with a step-by-step guide, a Tutorial
+button that walks through and highlights every part of the page, hover
+tooltips on every control, a light/dark mode toggle (sun/moon button, top
+right), and a footer with credits (created by Eylan Yutuc) and the link to
+this repository. The measurement pipeline is unchanged from v6.7.1.
 
 Parity: with the same ROI and parameters the web edition gives the same
 numbers as the v6.7.1 pipeline. This was checked on both demo images against

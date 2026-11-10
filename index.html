@@ -3,25 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Neurite Outgrowth Analyser (web edition)</title>
+  <title>Neurite Outgrowth Analyser (web edition v6.7.2)</title>
   <meta name="description" content="Measure neurite outgrowth in scratch-assay microscopy images, entirely in your browser. No install, no upload.">
   <link rel="stylesheet" href="static/css/app.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    (function () {
+      try {
+        var t = localStorage.getItem('neurite-outgrowth-theme');
+        if (t !== 'light' && t !== 'dark') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = t;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
 </head>
 <body>
   <header class="top">
-    <h1>Neurite Outgrowth Analyser <span class="sub">web edition of v6.7.1</span></h1>
+    <h1>Neurite Outgrowth Analyser <span class="sub">web edition v6.7.2</span></h1>
     <p class="privacy">Runs entirely in your browser. Images never leave this device.</p>
-    <a class="repo" href="https://github.com/e-yut/neurite_outgrowth_analyser">Source &amp; desktop version</a>
+    <div class="top-actions">
+      <button type="button" id="btnHelp" class="secondary" title="Open the step-by-step guide">Help</button>
+      <button type="button" id="btnTour" class="secondary" title="Take a guided walkthrough of every part of the page">Tutorial</button>
+      <button type="button" id="themeToggle" class="secondary theme" title="Switch between light and dark mode" aria-label="Switch between light and dark mode"></button>
+    </div>
   </header>
 
   <main>
     <aside class="panel" aria-label="Inputs and settings">
-      <section>
+      <section id="secImages">
         <h2>1. Images</h2>
-        <button type="button" id="btnDemo" class="secondary wide">Load demo images</button>
+        <button type="button" id="btnDemo" class="secondary wide" title="Load the two demo scratch-assay images (0 h reference and 120 h) from the repository">Load demo images</button>
 
         <h3>Reference image (0 h)</h3>
-        <div class="drop" id="dropRef" role="button" tabindex="0" aria-label="Choose or drop the reference image">
+        <div class="drop" id="dropRef" role="button" tabindex="0" aria-label="Choose or drop the reference image" title="The 0 h post-scratch image. The scratch gap is detected automatically and becomes the region of interest (ROI) for every image">
           <span class="hint">Drop a file here or click to choose</span>
           <span class="file"><span id="refName">None loaded</span>
             <button type="button" id="clearRef" class="icon" title="Remove reference" aria-label="Remove reference" hidden>×</button></span>
@@ -29,76 +45,76 @@
         <input type="file" id="fileRef" accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" hidden>
 
         <h3>Images to analyse</h3>
-        <div class="drop" id="dropImgs" role="button" tabindex="0" aria-label="Choose or drop images to analyse">
+        <div class="drop" id="dropImgs" role="button" tabindex="0" aria-label="Choose or drop images to analyse" title="The images to measure (e.g. later time points). Each starts with the reference ROI and can then be adjusted individually">
           <span class="hint">Drop files here or click to choose (TIFF, PNG, JPG)</span>
         </div>
         <input type="file" id="fileImgs" accept=".tif,.tiff,.png,.jpg,.jpeg,image/tiff,image/png,image/jpeg" multiple hidden>
         <ul id="imgList" class="files"></ul>
-        <button type="button" id="clearImgs" class="link small" hidden>Remove all images</button>
+        <button type="button" id="clearImgs" class="link small" hidden title="Remove every image to analyse (the reference stays)">Remove all images</button>
       </section>
 
-      <section>
+      <section id="secDetection">
         <h2>2. Detection</h2>
         <div id="sliders"></div>
-        <div class="param">
+        <div class="param" title="How many pixels correspond to one micron in your images. Used to convert lengths to µm and areas to µm²">
           <label for="ppm">Pixels per micron</label>
-          <input type="number" id="ppm" min="0.0001" step="any">
+          <input type="number" id="ppm" min="0.0001" step="any" title="How many pixels correspond to one micron in your images. Used to convert lengths to µm and areas to µm²">
         </div>
       </section>
 
-      <section>
+      <section id="secOverlay">
         <h2>3. Overlay</h2>
-        <div class="row">
+        <div class="row" title="Background of the exported overlay: the original colour image, a grayscale copy, or an Otsu black-and-white version">
           <label for="mode">Mode</label>
-          <select id="mode">
+          <select id="mode" title="Background of the exported overlay: the original colour image, a grayscale copy, or an Otsu black-and-white version">
             <option>Color</option>
             <option>Grayscale</option>
             <option>B/W</option>
           </select>
         </div>
-        <div class="row">
+        <div class="row" title="Colour used to paint the detected neurites on the overlay">
           <label for="color">Neurite colour</label>
-          <input type="color" id="color">
+          <input type="color" id="color" title="Colour used to paint the detected neurites on the overlay">
         </div>
-        <div class="row">
+        <div class="row" title="How thick the painted neurites appear on the overlay (1–10 px). Does not change the measurements">
           <label for="thickness">Thickness <span id="thicknessVal"></span></label>
-          <input type="range" id="thickness" min="1" max="10" step="1">
+          <input type="range" id="thickness" min="1" max="10" step="1" title="How thick the painted neurites appear on the overlay (1–10 px). Does not change the measurements">
         </div>
       </section>
 
-      <section>
+      <section id="secScalebar">
         <h2>4. Scale bar</h2>
-        <div class="row">
+        <div class="row" title="Draw a scale bar on the exported overlay images">
           <label for="sbOn">Add to overlays</label>
-          <input type="checkbox" id="sbOn">
+          <input type="checkbox" id="sbOn" title="Draw a scale bar on the exported overlay images">
         </div>
-        <div class="row">
+        <div class="row" title="Physical length of the scale bar in microns">
           <label for="sbLength">Length (µm)</label>
-          <input type="number" id="sbLength" min="1" step="any">
+          <input type="number" id="sbLength" min="1" step="any" title="Physical length of the scale bar in microns">
         </div>
-        <div class="row">
+        <div class="row" title="Corner of the image where the scale bar is drawn">
           <label for="sbPosition">Position</label>
-          <select id="sbPosition">
+          <select id="sbPosition" title="Corner of the image where the scale bar is drawn">
             <option>Bottom Right</option>
             <option>Bottom Left</option>
             <option>Top Right</option>
             <option>Top Left</option>
           </select>
         </div>
-        <div class="row">
+        <div class="row" title="Text written above the scale bar">
           <label for="sbLabel">Label</label>
-          <input type="text" id="sbLabel">
+          <input type="text" id="sbLabel" title="Text written above the scale bar">
         </div>
-        <div class="row">
+        <div class="row" title="Colour of the scale bar and its label">
           <label for="sbColor">Colour</label>
-          <input type="color" id="sbColor">
+          <input type="color" id="sbColor" title="Colour of the scale bar and its label">
         </div>
       </section>
 
-      <section class="actions">
-        <button type="button" id="btnRun" class="primary wide">Run analysis</button>
-        <button type="button" id="btnExport" class="secondary wide">Export results (ZIP)</button>
-        <button type="button" id="btnDefaults" class="link small">Reset settings to defaults</button>
+      <section class="actions" id="secActions">
+        <button type="button" id="btnRun" class="primary wide" title="Analyse every loaded image with the current ROI and settings">Run analysis</button>
+        <button type="button" id="btnExport" class="secondary wide" title="Download one ZIP with the results as CSV and XLSX plus an overlay PNG per image">Export results (ZIP)</button>
+        <button type="button" id="btnDefaults" class="link small" title="Restore every setting to its default value">Reset settings to defaults</button>
         <p id="status" class="status" role="status" aria-live="polite"></p>
       </section>
     </aside>
@@ -107,11 +123,11 @@
       <section class="viewer" aria-label="Image viewer">
         <div class="toolbar">
           <label class="vh" for="itemSel">Image shown</label>
-          <select id="itemSel"></select>
+          <select id="itemSel" title="Choose which loaded image is shown in the viewer"></select>
           <div class="tabs" role="tablist">
-            <button type="button" class="tab" role="tab" data-tab="roi">ROI</button>
-            <button type="button" class="tab" role="tab" data-tab="preview">Threshold preview</button>
-            <button type="button" class="tab" role="tab" data-tab="overlay">Overlay</button>
+            <button type="button" class="tab" role="tab" data-tab="roi" title="Show the image with its editable region of interest (drag corners or the whole shape)">ROI</button>
+            <button type="button" class="tab" role="tab" data-tab="preview" title="Live preview of the binary threshold stage of the real analysis pipeline">Threshold preview</button>
+            <button type="button" class="tab" role="tab" data-tab="overlay" title="Show the analysed overlay with detected neurites painted on the image">Overlay</button>
           </div>
           <div class="zoom">
             <button type="button" id="zoomOut" title="Zoom out" aria-label="Zoom out">−</button>
@@ -125,7 +141,7 @@
           <button type="button" id="btnApplyAll" title="Copy the reference ROI to every image, replacing individual adjustments">Apply reference ROI to all</button>
           <pre id="readout" class="readout" aria-live="off"></pre>
         </div>
-        <div class="stage"><canvas id="view"></canvas></div>
+        <div class="stage" title="Image viewer. In the ROI tab drag the corner handles to reshape the region, drag inside it to move it, and use the mouse wheel to zoom"><canvas id="view"></canvas></div>
         <p id="viewInfo" class="info"></p>
       </section>
 
@@ -142,9 +158,89 @@
     </div>
   </main>
 
+  <footer class="bottom">
+    <p>
+      Neurite Outgrowth Analyser — web edition v6.7.2 (same measurement pipeline as desktop v6.7.1).
+      Created by <strong>Eylan Yutuc</strong> ·
+      <a class="repo" href="https://github.com/e-yut/neurite_outgrowth_analyser">Source &amp; desktop version</a>
+    </p>
+  </footer>
+
+  <dialog id="helpDialog" aria-label="Help: step-by-step guide">
+    <div class="help-head">
+      <h2>Help — step-by-step guide</h2>
+      <div>
+        <button type="button" id="btnTourFromHelp" class="secondary" title="Close this guide and start the interactive walkthrough">Tutorial</button>
+        <button type="button" id="btnHelpClose" class="secondary" title="Close the help guide" aria-label="Close help">✕</button>
+      </div>
+    </div>
+    <div class="help-body">
+      <p>This app measures neurite outgrowth into a scratch wound, entirely in your browser. Nothing is uploaded —
+        images never leave your device. It reproduces the measurement pipeline of the desktop Python app v6.7.1.</p>
+
+      <h3>1. Load the reference image</h3>
+      <p>Drop (or click to pick) the <strong>0 h post-scratch</strong> image in the first box. TIFF, PNG and JPG work.
+        The app detects the cell-free scratch gap automatically and places a rectangular region of interest (ROI)
+        over it. You can also press <strong>Load demo images</strong> to try the app with the bundled example data.</p>
+
+      <h3>2. Load the images to analyse</h3>
+      <p>Drop the later time-point images in the second box. Each one starts with a copy of the reference ROI and can
+        then be adjusted on its own. Select an image with the drop-down above the viewer or by clicking it in the
+        list or the results table.</p>
+
+      <h3>3. Check and adjust the ROI</h3>
+      <p>In the <strong>ROI</strong> tab, drag any of the four corner handles to reshape the quadrilateral, or drag
+        inside it to move the whole shape. Zoom with the mouse wheel or the −/Fit/+ buttons. The side lengths and
+        the area are shown live next to the ROI tools. <strong>Auto-detect gap</strong> re-runs the automatic
+        detection on the reference, <strong>Use reference ROI</strong> resets the current image to the reference ROI,
+        and <strong>Apply reference ROI to all</strong> copies it to every image.</p>
+
+      <h3>4. Set the detection parameters</h3>
+      <ul>
+        <li><strong>Top-hat size</strong> — size of the square structuring element used by the top-hat filter that
+          enhances thin, bright structures (odd values 3–51, default 15).</li>
+        <li><strong>Otsu offset</strong> — shifts the automatic Otsu threshold up or down (−50…50, default 0).</li>
+        <li><strong>Manual thresh</strong> — fixed binary threshold 1–255; set to <strong>0</strong> to use the
+          automatic Otsu threshold plus the offset instead (default 100).</li>
+        <li><strong>Min area</strong> — connected components smaller than this many pixels are discarded as noise
+          (default 150).</li>
+        <li><strong>Min length</strong> — skeleton traces shorter than this many pixels are discarded (default 50).</li>
+        <li><strong>Pixels per micron</strong> — your image calibration; converts pixel lengths to µm and areas to µm²
+          (default 0.287).</li>
+      </ul>
+      <p>The <strong>Threshold preview</strong> tab updates live and shows the exact binary image the pipeline will
+        measure, so you can tune the parameters before running.</p>
+
+      <h3>5. Run the analysis</h3>
+      <p>Press <strong>Run analysis</strong>. Each image is processed with the real pipeline: ROI masking, histogram
+        equalisation, inversion, top-hat, blur, threshold, size filtering, skeletonisation and tracing. The results
+        table fills in below the viewer; hover a column header for its definition. If you change the ROI or a
+        parameter afterwards, affected rows turn grey until you run again.</p>
+
+      <h3>6. Overlay and scale bar</h3>
+      <p>The <strong>Overlay</strong> tab paints the detected neurites on the image. Choose the background
+        (<em>Color</em>, <em>Grayscale</em> or <em>B/W</em>), the neurite colour and the painted thickness — these are
+        presentation only and never change the numbers. Optionally add a scale bar (length, corner, label and colour)
+        to the exported overlays.</p>
+
+      <h3>7. Export</h3>
+      <p>Press <strong>Export results (ZIP)</strong> to download a single ZIP containing <code>results.csv</code>,
+        <code>results.xlsx</code> and one overlay PNG per analysed image.</p>
+
+      <h3>Tips</h3>
+      <ul>
+        <li>Your settings are saved in the browser and restored next time; <strong>Reset settings to defaults</strong>
+          puts everything back.</li>
+        <li>Use the <strong>Tutorial</strong> button (top right) for an interactive walkthrough of every control.</li>
+        <li>Use the sun/moon button (top right) to switch between light and dark mode.</li>
+      </ul>
+    </div>
+  </dialog>
+
   <script src="static/vendor/fflate/fflate.min.js"></script>
   <script src="static/vendor/sheetjs/xlsx.mini.min.js"></script>
   <script src="static/js/pipeline.js"></script>
   <script type="module" src="static/js/app.js"></script>
+  <script src="static/js/help.js"></script>
 </body>
 </html>
